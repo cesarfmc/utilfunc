@@ -57,7 +57,7 @@ public class Parser {
 				nFunctions = 0;
 				List<File> files = listf(dir.getAbsolutePath());
 				List<File> filesJSON = generateJSON(files);
-				generateClasses(filesJSON);
+				generateUtilFunctions(filesJSON);
 				newExpressions = new ArrayList<NewExpression>();
 				prototypeExpressions = new ArrayList<PrototypeExpression>();
 				inheritanceExpressions = new ArrayList<InheritanceExpression>();
@@ -66,6 +66,10 @@ public class Parser {
 		printCSV(classes);
 	
 		// gerarXMI(classes);
+	}
+
+	private void generateUtilFunctions(List<File> filesJSON) {
+		//matheus inserir o codigo aqui.	
 	}
 
 	private void generateClasses(List<File> filesJSON) throws FileNotFoundException {
