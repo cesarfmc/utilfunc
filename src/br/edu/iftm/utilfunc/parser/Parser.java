@@ -31,6 +31,7 @@ public class Parser {
 	private List<Function> functions = new ArrayList<Function>();
 	private ArrayList<JsonValue> change;
 	private boolean util = true;
+	private String file;
 	
 	public Parser(String dirPath) {
 		this.dirPath = dirPath;
@@ -54,7 +55,7 @@ public class Parser {
 	private void generateUtilFunctions(List<File> filesJSON) throws FileNotFoundException  {
 		
 		for (File file : filesJSON) {
-			//System.out.println(file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-2));
+			this.file = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-2);
 			JsonReader jsonReader = Json.createReader(new FileReader(file));
 			JsonObject jsonObject = jsonReader.readObject();
 			JsonArray ArrayBoby = jsonObject.getJsonArray("body");
@@ -296,12 +297,12 @@ public class Parser {
 		String funcName;
 		JsonObject object = (JsonObject) change.get(0);
 		JsonArray array= (JsonArray) change.get(1);
-		funcName = object.getJsonString("name").toString();
-		Function function = new Function(funcName,dirPath);
+		funcName = object.getJsonString("name").toString().replaceAll("\"", "");
+		Function function = new Function(funcName,file);
 		
 		for (JsonValue obj : array) {
 			object = (JsonObject) obj;
-			function.addParam(object.getJsonString("name").toString());
+			function.addParam(object.getJsonString("name").toString().replaceAll("\"", ""));
 		}
 		functions.add(function);
 		
