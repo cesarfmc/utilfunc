@@ -30,12 +30,14 @@ public class Parser {
 	private String dirPath;
 	private List<Function> functions = new ArrayList<Function>();
 	private ArrayList<JsonValue> change;
+	private ArrayList<String> variables;
 	private boolean util = true;
 	private String file;
 
 	public Parser(String dirPath) {
 		this.dirPath = dirPath;
 		this.change = new ArrayList<>();
+		this.variables = new ArrayList<>();
 	}
 
 	public void parse() throws NoSuchMethodException, ScriptException, IOException {
@@ -78,6 +80,7 @@ public class Parser {
 							buildListUtilityFunction();	
 						}
 						change.clear();
+						variables.clear();
 						util = true;
 					}
 				}else if(entry.getValue().toString().equals("\"FunctionDeclaration\"")) {
@@ -86,6 +89,7 @@ public class Parser {
 						buildListUtilityFunction();
 					}
 					change.clear();
+					variables.clear();
 					util = true;
 				}
 			} else if (entry.getValue() instanceof JsonArray) {
@@ -115,38 +119,54 @@ public class Parser {
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonString) {
-				if(entry.getKey().equals("name")) {
-					if((entry.getValue().toString().equals("\"get\"")) || (entry.getValue().toString().equals("\"set\""))) {
-						util = false;
-					}
-				}else if(entry.getValue().toString().equals("\"ReturnStatement\"")) {
+			   if(entry.getValue().toString().equals("\"ReturnStatement\"")) {
 					util = checkReturn(jsonObject);
+				}else if(entry.getValue().toString().equals("\"ThisExpression\"")) {
+					util = false;
+					return;
 				}
 			} else if (entry.getValue() instanceof JsonArray) {
-
+				JsonArray array;
 				if(entry.getKey().equals("params")) {
+					array = (JsonArray) entry.getValue();
 					change.add(entry.getValue());
+					getVariableNameOnParams(array);
 				}else if(entry.getKey().equals("range")) {
-
 				}else if(entry.getKey().equals("body")) {
-					JsonArray array = (JsonArray) entry.getValue();
+				    array = (JsonArray) entry.getValue();
 					JsonObject object = null;
 					if(array.isEmpty()) {
 						util = false;
+						return;
 					}else {
+						for(JsonValue obj : array) {
+							object = (JsonObject) obj;
+							searchVariable(object);
+						}
 						for(JsonValue obj : array) {
 							object = (JsonObject) obj;
 							if(isFunctionDeclaration(object)) {
 								util = false;
+								return;
 							}else if(isFunctionOnVariable(object)) {
 								util = false;
+								return;
 							}else {
-								checkFunction(object);
+								isDOMwithLiteralOnArgument(object);
+								if(!util) {
+									return;
+								}else {	
+									findCompare(object);
+									if(!util) {
+										return;
+									}
+									checkFunction(object);	
+								}
 							}
 						}
 					}
 				}else {
-					JsonArray array = (JsonArray) entry.getValue();
+				    array = (JsonArray) entry.getValue();
 					JsonObject object = null;
 					for(JsonValue obj : array) {
 						object = (JsonObject) obj;
@@ -155,17 +175,20 @@ public class Parser {
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
 				if(entry.getKey().equals("id")) {
+					JsonObject idObject = (JsonObject) entry.getValue();	
 					if(change.isEmpty()) {
-						change.add(entry.getValue());	
+						if(checkFunctionName(idObject)) {
+							change.add(entry.getValue());	
+						}else {
+							util = false;
+							return;
+						}
 					}
 				}else {
 					JsonObject object = (JsonObject) entry.getValue();
 					checkFunction(object);	
 				}
 			}else if((entry.getKey().equals("id"))) {
-				if(change.isEmpty()) {
-					System.out.println("Não é utilitária");
-				}
 			}
 		}
 	}
@@ -187,8 +210,15 @@ public class Parser {
 			} else if (entry.getValue() instanceof JsonObject) {
 
 				if((entry.getKey().equals("id"))) {
-
-					change.add(entry.getValue());
+					JsonObject idObject = (JsonObject) entry.getValue();	
+                    if(change.isEmpty()) {
+                    	if(checkFunctionName(idObject)) {
+    						change.add(idObject);	
+    					}else {
+    						util = false;
+    						return false;
+    					}	
+                    }
 				}else {
 					JsonObject obj1 = (JsonObject) entry.getValue();
 					return  checkFunctionOnVariable(obj1);	
@@ -218,14 +248,23 @@ public class Parser {
 			} else if (entry.getValue() instanceof JsonObject) {
 
 				if(entry.getKey().toString().equals("id")) {
-
-					change.add(entry.getValue());
+					JsonObject idObject = (JsonObject) entry.getValue();	
+                    if(change.isEmpty()) {
+                    	if(checkFunctionName(idObject)) {
+    						change.add(idObject);	
+    					}else {
+    						util = false;
+    						return false;
+    					}	
+                    }
 				}else {
 					JsonObject obj1 = (JsonObject) entry.getValue();
 					return  isFunctionDeclaration(obj1);	
 				}
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"FunctionDeclaration\"")) {
+					return false;
+				}else if(entry.getValue().toString().equals("\"FunctionExpression\"")) {
 					return false;
 				}
 			}
@@ -248,12 +287,7 @@ public class Parser {
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
 				JsonObject obj1 = (JsonObject) entry.getValue();
-				if(entry.getKey().equals("id")) {
-
-				}else {
 					return  isFunctionOnVariable(obj1);		
-				}
-
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"FunctionExpression\"")) {
 					return true;
@@ -264,6 +298,236 @@ public class Parser {
 	}
 
 
+	private boolean checkFunctionName (JsonObject jsonObject) {
+
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			if (entry.getValue() instanceof JsonArray) {
+				if(entry.getKey().equals("range")) {
+				}else {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+						return  checkReturn(object);
+					}
+				}
+			} else if (entry.getValue() instanceof JsonObject) {
+				JsonObject obj1 = (JsonObject) entry.getValue();
+				return  checkReturn(obj1);	
+
+			} else if (entry.getValue() instanceof JsonString) {
+				if (entry.getValue().toString().equalsIgnoreCase("\"get\"")) {
+					return false;
+				}else if(entry.getValue().toString().equalsIgnoreCase("\"set\"")) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	private void isDOMwithLiteralOnArgument(JsonObject jsonObject) {
+
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			if (entry.getValue() instanceof JsonArray) {
+				if(entry.getKey().toString().equals("range")) {
+				}else {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+					    isDOMwithLiteralOnArgument(object);
+					}
+				}
+			} else if (entry.getValue() instanceof JsonObject) {
+					JsonObject obj1 = (JsonObject) entry.getValue();
+				    isDOMwithLiteralOnArgument(obj1);	
+			} else if (entry.getValue() instanceof JsonString) {
+				
+				if (entry.getValue().toString().equals("\"$\"")) {
+					change.add(entry.getValue());
+				}else if (entry.getValue().toString().equals("\"document\"")) {
+				change.add(entry.getValue());
+				}else if(entry.getValue().toString().equals("\"getElementById\"")) {
+			    change.add(entry.getValue());
+				}else if(entry.getValue().toString().equals("\"Literal\"")) {
+					if(change.get(change.size() - 1).toString().equals("\"getElementById\"")) {
+						if(change.get(change.size() - 2).toString().equals("\"document\"")) {
+							change.remove(change.size() - 1);
+							change.remove(change.size() - 1);
+							util = false;
+						}
+					}else {
+						if(change.get(change.size() - 1).toString().equals("\"$\"")) {
+							change.remove(change.size() - 1);
+							util = false;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private void getVariableNameOnParams (JsonArray myArray) {
+        
+		JsonObject object = null;
+		for (JsonValue obj : myArray) {
+			object = (JsonObject) obj;
+			Set<Entry<String, JsonValue>> myset = object.entrySet();
+			for (Entry<String, JsonValue> entry : myset) {
+			 if (entry.getValue() instanceof JsonString) {
+					if (entry.getKey().equals("name")) {
+						variables.add(entry.getValue().toString());
+					}
+				}
+			}
+		}
+	}
+	
+	private void searchVariable (JsonObject jsonObject) {
+
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			if (entry.getValue() instanceof JsonArray) {
+				if(entry.getKey().equals("range")) {
+				}else {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+					    searchVariable(object);
+					}
+				}
+			} else if (entry.getValue() instanceof JsonObject) {
+				JsonObject obj1 = (JsonObject) entry.getValue();
+				  searchVariable(obj1);	
+
+			} else if (entry.getValue() instanceof JsonString) {
+				if (entry.getValue().toString().equalsIgnoreCase("\"VariableDeclaration\"")) {
+					getVariableName(jsonObject);
+				}
+			}
+		}
+	}
+	
+	private void getVariableName (JsonObject jsonObject) {
+
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			if (entry.getValue() instanceof JsonArray) {
+				if(entry.getKey().equals("range")) {
+				}else {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+						 getVariableName(object);
+					}
+				}
+			} else if (entry.getValue() instanceof JsonObject) {
+				if(entry.getKey().equals("init")) {
+				}else {
+					JsonObject obj1 = (JsonObject) entry.getValue();
+					getVariableName(obj1);	
+				}
+			} else if (entry.getValue() instanceof JsonString) {
+				if (entry.getKey().equals("name")) {
+					variables.add(entry.getValue().toString());
+				}
+			}
+		}
+	}
+		
+	//  ------------------------------------------------------------------------
+	
+	
+	private void findCompare (JsonObject jsonObject) {
+
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			if (entry.getValue() instanceof JsonArray) {
+				if(entry.getKey().equals("range")) {
+				}else {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+						findCompare(object);
+					}
+				}
+			} else if (entry.getValue() instanceof JsonObject) {
+				JsonObject obj1 = (JsonObject) entry.getValue();
+				findCompare(obj1);	
+
+			} else if (entry.getValue() instanceof JsonString) {
+				if (entry.getValue().toString().equals("\"Identifier\"")) {
+				   compareVariableName(jsonObject);
+				}else if (entry.getValue().toString().equals("\"CallExpression\"")) {
+					compareVariableOnArguments(jsonObject);
+					//checkIfNativeFunction(jsonObject);
+					return;
+				}
+			}
+		}
+	}
+	
+	
+	private boolean compareVariableOnArguments (JsonObject jsonObject) {
+
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+		 if (entry.getValue() instanceof JsonArray) {
+					if (entry.getKey().equals("arguments")) {
+						JsonArray array = (JsonArray) entry.getValue();
+						JsonObject object;
+						for (JsonValue obj : array) {
+							object = (JsonObject) obj;
+							compareVariableName(object);
+						}
+						
+						
+					}
+			}
+		}
+		return false;
+	}
+	
+	private void checkIfNativeFunction (JsonObject jsonObject) {
+
+		
+		
+		
+		
+		
+		
+	}
+	
+	// -------------------------------------------------------------------
+
+	
+	private boolean compareVariableName (JsonObject jsonObject) {
+
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+		 if (entry.getValue() instanceof JsonString) {
+					if (entry.getKey().equals("name")) {
+						String name= entry.getValue().toString();
+						for(String obj : variables) {
+							if(obj.equals(name)) {
+								return true;
+							}
+						}
+						util = false;
+					}
+			}
+		}
+		return false;
+	}
+	
+	
+	
 
 	private boolean checkReturn(JsonObject jsonObject) {
 
