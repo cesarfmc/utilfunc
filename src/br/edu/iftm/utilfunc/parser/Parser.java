@@ -2,10 +2,14 @@ package br.edu.iftm.utilfunc.parser;
 
 import java.io.File;
 
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,6 +23,10 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.script.Invocable;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import au.com.bytecode.opencsv.CSVWriter;
@@ -31,7 +39,6 @@ public class Parser {
 	private List<Function> functions = new ArrayList<Function>();
 	private ArrayList<JsonValue> idFunction;
 	private ArrayList<String> localVariables;
-	private ArrayList<String> globalVariables;
 	private boolean util = true;
 	private String file;
 
@@ -39,7 +46,6 @@ public class Parser {
 		this.dirPath = dirPath;
 		this.idFunction = new ArrayList<>();
 		this.localVariables = new ArrayList<>();
-		this.globalVariables = new ArrayList<>();
 	}
 
 	public void parse() throws NoSuchMethodException, ScriptException, IOException {
@@ -51,13 +57,12 @@ public class Parser {
 				List<File> files = listf(dir.getAbsolutePath());
 				List<File> filesJSON = generateJSON(files);
 				generateUtilFunctions(filesJSON);
-				globalVariables.clear();
 			}
 		}
 		printCSV();
 	}
 
-	private void generateUtilFunctions(List<File> filesJSON) throws FileNotFoundException  {
+	private void generateUtilFunctions(List<File> filesJSON) throws NoSuchMethodException, ScriptException, IOException  {
 
 		for (File file : filesJSON) {
 			this.file = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-2);
@@ -66,31 +71,14 @@ public class Parser {
 			JsonArray ArrayBoby = jsonObject.getJsonArray("body");
 			for(JsonValue obj : ArrayBoby) {
 				JsonObject object = (JsonObject) obj;
-				lookForGlobalVariables(object);
-			}
-			for(JsonValue obj : ArrayBoby) {
-				JsonObject object = (JsonObject) obj;
 				breakInPieces(object);
 			}
 		}
 	}
 
-	private void lookForGlobalVariables(JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonString) {
-				if(entry.getValue().toString().equals("\"VariableDeclaration\""))  {
-					getGlobalVariable(jsonObject);
-				}else if(entry.getValue().toString().equals("\"ExpressionStatement\"")) {
-					getGlobalVariableOnExpression(jsonObject);	
-				}
-			} 
-		}
-	}
 
 
-	private void breakInPieces(JsonObject jsonObject) {
+	private void breakInPieces(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -137,7 +125,7 @@ public class Parser {
 
 
 
-	private void checkFunction(JsonObject jsonObject) {
+	private void checkFunction(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -220,7 +208,7 @@ public class Parser {
 		}
 	}
 
-	private boolean checkFunctionOnVariable(JsonObject jsonObject) {
+	private boolean checkFunctionOnVariable(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -466,8 +454,6 @@ public class Parser {
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equalsIgnoreCase("\"VariableDeclaration\"")) {
 					getLocalVariable(jsonObject);
-				}else if(entry.getValue().toString().equalsIgnoreCase("\"ExpressionStatement\"")) {
-					getLocalVariableOnExpression(jsonObject);
 				}
 			}
 		}
@@ -500,116 +486,6 @@ public class Parser {
 	}
 
 
-	private void getGlobalVariable (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonArray) {
-				if(entry.getKey().equals("range")) {
-				}else if(entry.getKey().equals("declarations")) {
-					JsonObject object = null;
-					JsonArray array = (JsonArray) entry.getValue();
-					for (JsonValue obj : array) {
-						object = (JsonObject) obj;
-						getGlobalIdObject(object);
-					}	
-				}else {
-					JsonObject object = null;
-					JsonArray array = (JsonArray) entry.getValue();
-					for (JsonValue obj : array) {
-						object = (JsonObject) obj;
-						getGlobalVariable(object);
-					}
-				}
-			} else if (entry.getValue() instanceof JsonObject) {
-				JsonObject obj1 = (JsonObject) entry.getValue();
-				getGlobalVariable(obj1);	
-
-			}
-		}
-	}
-
-
-	private void getGlobalIdObject (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getKey().equals("id")) {
-				JsonObject property = (JsonObject) entry.getValue();
-				getGlobalVariableName(property);
-			}
-		}
-	}
-
-
-	private boolean getGlobalVariableOnExpression (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonArray) {
-				if(entry.getKey().equals("range")) {
-				}else {
-					JsonObject object = null;
-					JsonArray array = (JsonArray) entry.getValue();
-					for (JsonValue obj : array) {
-						object = (JsonObject) obj;
-						return getGlobalVariableOnExpression(object);
-					}
-				}
-			} else if (entry.getValue() instanceof JsonObject) {
-				if(entry.getKey().equals("left")) {
-					JsonObject obj = (JsonObject) entry.getValue();
-					return getGlobalVariableInLeft(obj);
-				}else {
-					JsonObject obj1 = (JsonObject) entry.getValue();
-					return getGlobalVariableOnExpression(obj1);	
-				}
-			} 
-		}
-		return false;
-	}
-
-
-	private void getGlobalVariableName (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonString) {
-				if (entry.getKey().equals("name")) {
-					globalVariables.add(entry.getValue().toString());
-				}
-			}
-		}
-	}
-
-
-
-	private boolean getLocalVariableOnExpression (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonArray) {
-				if(entry.getKey().equals("range")) {
-				}else {
-					JsonObject object = null;
-					JsonArray array = (JsonArray) entry.getValue();
-					for (JsonValue obj : array) {
-						object = (JsonObject) obj;
-						return getLocalVariableOnExpression(object);
-					}
-				}
-			} else if (entry.getValue() instanceof JsonObject) {
-				if(entry.getKey().equals("left")) {
-					getLocalVariableInLeft(jsonObject);
-				}else {
-					JsonObject obj1 = (JsonObject) entry.getValue();
-					return getLocalVariableOnExpression(obj1);	
-				}
-			} 
-		}
-		return false;
-	}
-
 
 
 	private void getLocalVariableName (JsonObject jsonObject) {
@@ -624,92 +500,16 @@ public class Parser {
 		}
 	}
 
-	private boolean getGlobalVariableInLeft (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonString) {
-				if (entry.getValue().toString().equalsIgnoreCase("\"Identifier\"")) {
-					getGlobalVariableName(jsonObject);
-				}else {
-					getGlobalPropertyObject(jsonObject);
-				}
-			}
-		}
-		return false;
-	}
-
-	private boolean getLocalVariableInLeft (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonString) {
-				if (entry.getValue().toString().equalsIgnoreCase("\"Identifier\"")) {
-					compareVariableName(jsonObject);
-				}else {
-					getLocalPropertyObject(jsonObject);
-				}
-			}
-		}
-		return false;
-	}
-
-
-	private void getGlobalPropertyObject (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getKey().equals("property")) {
-				JsonObject property = (JsonObject) entry.getValue();
-				getGlobalVariableName(property);
-			}
-		}
-	}
-
-	private void getLocalPropertyObject (JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getKey().equals("property")) {
-				JsonObject property = (JsonObject) entry.getValue();
-				compareVariableName(property);
-			}
-		}
-	}
 
 
 
-	private void compareVariableName (JsonObject jsonObject) {
 
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonString) {
-				if (entry.getKey().equals("name")) {
-					String name= entry.getValue().toString();
-					for(String global : globalVariables) {
-						if(global.equals(name)) {
-							for(String local : localVariables) {
-								if(local.equals(name)) {
-									return ;
-								}
-							}
-							util = false;
-							return;
-						}
-					}
 
-					for (String local : localVariables) {
-						if(local.equals(name)) {
-							return;
-						}
-					}
-					localVariables.add(name);
-				}
-			}
-		}
-	}
 
-	private void compare(JsonObject jsonObject) {
+
+
+
+	private void compare(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -734,7 +534,7 @@ public class Parser {
 		}
 	}
 
-	private void checkVariableNameOnEscope (JsonObject jsonObject) {
+	private void checkVariableNameOnEscope (JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -746,24 +546,47 @@ public class Parser {
 							return;
 						}
 					}
-					for(String global : globalVariables) {
-						if(global.equals(name)) {
-							for(String local : localVariables) {
-								if(local.equals(name)) {
-									return ;
-								}
-							}
-							util = false;
-							return;
-						}
-					}
-
-
+					//checkIfNative(jsonObject);
 				}
 			}
 		}
 	}
 
+	
+	private  String readFile(String fileName) throws IOException,FileNotFoundException {
+        return new String(Files.readAllBytes(Paths.get(fileName)), StandardCharsets.UTF_8);
+    }
+	
+	private void checkIfNative(JsonObject jsonObject) throws FileNotFoundException, ScriptException, IOException, NoSuchMethodException {
+		
+		
+		ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngine engine = manager.getEngineByName("nashorn");
+        ScriptContext context = engine.getContext();
+        Invocable inv = (Invocable) engine;
+        
+        engine.eval(readFile("src/js/rinoceronte/escodegen.browser.js"), context);
+        Object escodegen = engine.get("escodegen");
+        Object JSON = engine.get("JSON");
+        Object ast = inv.invokeMethod(JSON, "parse",jsonObject.toString() );
+		
+        engine.put("ast", ast);
+        ast = inv.invokeMethod(escodegen, "attachComments", engine.eval("ast"), engine.eval("ast.comments"),engine.eval("ast.tokens"));
+        engine.eval("args2 = {comment: true}");
+        Object resultEscodegen = inv.invokeMethod(escodegen, "generate", ast);
+        
+        try {
+            engine.eval(resultEscodegen.toString());
+        } catch (ScriptException e) {
+        	util = false;
+            System.out.println("Error executing script: " + e.getMessage());
+        }
+		
+		
+	}
+	
+	 
+	
 
 
 
