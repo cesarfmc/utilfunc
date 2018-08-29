@@ -1,34 +1,28 @@
 package br.edu.iftm.utilfunc.parser;
 
 import java.io.File;
-
-
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
-
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
-import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import br.edu.iftm.utilfunc.entity.Function;
 import rinoceronte.Esprima;
@@ -36,19 +30,21 @@ import rinoceronte.Esprima;
 public class Parser {
 
 	private String dirPath;
+	private String csvFilePath;
 	private List<Function> functions = new ArrayList<Function>();
 	private ArrayList<JsonValue> idFunction;
 	private ArrayList<String> localVariables;
 	private boolean util = true;
 	private String file;
 
-	public Parser(String dirPath) {
+	public Parser(String dirPath, String csvFile) {
 		this.dirPath = dirPath;
+		this.csvFilePath = csvFile;
 		this.idFunction = new ArrayList<>();
 		this.localVariables = new ArrayList<>();
 	}
 
-	public void parse() throws NoSuchMethodException, ScriptException, IOException {
+	public void parse() throws IOException, NoSuchMethodException, ScriptException  {
 		File diretorioRaiz = new File(dirPath);
 		ArrayList<File> diretorios = new ArrayList<File>();
 		diretorios.add(diretorioRaiz);
@@ -62,7 +58,7 @@ public class Parser {
 		printCSV();
 	}
 
-	private void generateUtilFunctions(List<File> filesJSON) throws NoSuchMethodException, ScriptException, IOException  {
+	private void generateUtilFunctions(List<File> filesJSON) throws FileNotFoundException  {
 
 		for (File file : filesJSON) {
 			this.file = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-2);
@@ -78,13 +74,14 @@ public class Parser {
 
 
 
-	private void breakInPieces(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
+	private void breakInPieces(JsonObject jsonObject)  {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonString) {
 				if(entry.getValue().toString().equals("\"VariableDeclaration\""))  {
 					if(isFunctionOnVariable(jsonObject)) {
+						loadCsvFile();
 						checkFunctionOnVariable(jsonObject);
 						if(util) {
 							buildListUtilityFunction();	
@@ -95,6 +92,7 @@ public class Parser {
 					}
 
 				}else if(entry.getValue().toString().equals("\"FunctionDeclaration\"")) {
+					loadCsvFile();
 					checkFunction(jsonObject);
 					if(util) {
 						buildListUtilityFunction();
@@ -125,7 +123,7 @@ public class Parser {
 
 
 
-	private void checkFunction(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
+	private void checkFunction(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -208,7 +206,7 @@ public class Parser {
 		}
 	}
 
-	private boolean checkFunctionOnVariable(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
+	private boolean checkFunctionOnVariable(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -486,8 +484,6 @@ public class Parser {
 	}
 
 
-
-
 	private void getLocalVariableName (JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
@@ -500,16 +496,7 @@ public class Parser {
 		}
 	}
 
-
-
-
-
-
-
-
-
-
-	private void compare(JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
+	private void compare(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -524,8 +511,11 @@ public class Parser {
 					}
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
-				JsonObject obj1 = (JsonObject) entry.getValue();
-				compare(obj1);		
+				if(entry.getKey().equals("property")) {	
+				}else {
+					JsonObject obj1 = (JsonObject) entry.getValue();
+					compare(obj1);	
+				}		
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"Identifier\"")) {
 					checkVariableNameOnEscope(jsonObject);
@@ -534,61 +524,38 @@ public class Parser {
 		}
 	}
 
-	private void checkVariableNameOnEscope (JsonObject jsonObject) throws FileNotFoundException, NoSuchMethodException, ScriptException, IOException {
-
+	private void checkVariableNameOnEscope (JsonObject jsonObject)  {
+         
+		String name;
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonString) {
 				if (entry.getKey().equals("name")) {
-					String name= entry.getValue().toString();
+					 name= entry.getValue().toString();
 					for (String local : localVariables) {
 						if(local.equals(name)) {
 							return;
 						}
 					}
-					//checkIfNative(jsonObject);
+					checkIfNative(name);
 				}
 			}
 		}
 	}
-
 	
-	private  String readFile(String fileName) throws IOException,FileNotFoundException {
-        return new String(Files.readAllBytes(Paths.get(fileName)), StandardCharsets.UTF_8);
-    }
-	
-	private void checkIfNative(JsonObject jsonObject) throws FileNotFoundException, ScriptException, IOException, NoSuchMethodException {
+	private void checkIfNative(String name) {
 		
 		
 		ScriptEngineManager manager = new ScriptEngineManager();
         ScriptEngine engine = manager.getEngineByName("nashorn");
         ScriptContext context = engine.getContext();
-        Invocable inv = (Invocable) engine;
-        
-        engine.eval(readFile("src/js/rinoceronte/escodegen.browser.js"), context);
-        Object escodegen = engine.get("escodegen");
-        Object JSON = engine.get("JSON");
-        Object ast = inv.invokeMethod(JSON, "parse",jsonObject.toString() );
-		
-        engine.put("ast", ast);
-        ast = inv.invokeMethod(escodegen, "attachComments", engine.eval("ast"), engine.eval("ast.comments"),engine.eval("ast.tokens"));
-        engine.eval("args2 = {comment: true}");
-        Object resultEscodegen = inv.invokeMethod(escodegen, "generate", ast);
-        
+
         try {
-            engine.eval(resultEscodegen.toString());
-        } catch (ScriptException e) {
-        	util = false;
-            System.out.println("Error executing script: " + e.getMessage());
-        }
-		
-		
+        	engine.eval(name,context);
+		} catch (Exception e) {
+			System.out.println("Passou !!!!!");
+		}	
 	}
-	
-	 
-	
-
-
 
 	private boolean checkReturn(JsonObject jsonObject) {
 
@@ -620,6 +587,24 @@ public class Parser {
 		}
 		return true;
 	}
+	
+	private void loadCsvFile() {
+		
+		String[] nextLine;
+		
+		try {
+			CSVReader reader = new CSVReader(new FileReader(csvFilePath),';');
+			while ((nextLine = reader.readNext()) != null) {
+				localVariables.add(nextLine[0]); 
+    	}
+			reader.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 
 	private void buildListUtilityFunction() {
 
