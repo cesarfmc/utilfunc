@@ -36,7 +36,7 @@ public class Parser {
 	private ArrayList<JsonValue> idFunction;
 	private ArrayList<String> localVariables;
 	private boolean util = true;
-	private String file;
+	private String file,expName;
 
 	public Parser(String dirPath, String csvFile) {
 		this.dirPath = dirPath;
@@ -73,10 +73,7 @@ public class Parser {
 		}
 	}
 
-
-
 	private void breakInPieces(JsonObject jsonObject)  {
-
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonString) {
@@ -93,7 +90,6 @@ public class Parser {
 						localVariables.clear();
 						util = true;
 					}
-
 				}else if(entry.getValue().toString().equals("\"FunctionDeclaration\"")) {
 					loadCsvFile();
 					checkFunction(jsonObject);
@@ -104,10 +100,9 @@ public class Parser {
 					localVariables.clear();
 					util = true;
 				}else if(entry.getValue().toString().equals("\"ExpressionStatement\"")) {
-					/*
 					FunctionExpressionOnExpression(jsonObject);
 					if(!util) {
-						util = true;
+							util = true;
 						loadCsvFile();
 						checkFunctionOnExpression(jsonObject);
 						if(util) {
@@ -117,29 +112,12 @@ public class Parser {
 						localVariables.clear();
 						util = true;
 					}
-					*/	
 				}
-			} else if (entry.getValue() instanceof JsonArray) {
-				if(entry.getKey().equals("range")) {
-
-				}else {
-					JsonArray array = (JsonArray) entry.getValue();
-					JsonObject object = null;
-					for(JsonValue obj : array) {
-						if(obj instanceof JsonObject) {
-							object = (JsonObject) obj;
-							breakInPieces(object);
-						}
-					}
-				}	
-			} else if (entry.getValue() instanceof JsonObject) {
-				JsonObject object = (JsonObject) entry.getValue();
-				breakInPieces(object);
-			}
+				
+				break;
+			} 
 		}
 	}
-
-
 
 	private void checkFunction(JsonObject jsonObject) {
 
@@ -193,7 +171,6 @@ public class Parser {
 									checkFunction(object);	
 								}
 							}
-
 						}
 					}
 				}else {
@@ -235,11 +212,10 @@ public class Parser {
 					JsonArray array = (JsonArray) entry.getValue();
 					for (JsonValue obj : array) {
 						object = (JsonObject) obj;
-						  checkFunctionOnVariable(object);
+						checkFunctionOnVariable(object);
 					}
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
-
 				if((entry.getKey().equals("id"))) {
 					JsonObject idObject = (JsonObject) entry.getValue();	
 					if(idFunction.isEmpty()) {
@@ -247,12 +223,11 @@ public class Parser {
 							idFunction.add(idObject);	
 						}else {
 							util = false;
-							
 						}	
 					}
 				}else {
 					JsonObject obj1 = (JsonObject) entry.getValue();
-					  checkFunctionOnVariable(obj1);	
+					checkFunctionOnVariable(obj1);	
 				}
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"FunctionExpression\"")) {
@@ -261,9 +236,8 @@ public class Parser {
 			}
 		}
 	}
-	
-	private void checkFunctionOnExpression(JsonObject jsonObject) {
 
+	private void checkFunctionOnExpression(JsonObject jsonObject) {
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -293,23 +267,23 @@ public class Parser {
 			}
 		}
 	}
-	
+
 	private void checkLeft(JsonObject jsonObject) {
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
-	         if (entry.getValue() instanceof JsonString) {
+			if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"Identifier\"")) {
 					idFunction.add(jsonObject);
 					return;
 				}else {
-					file = "";
+					expName = "";
 					buildNameFunction(jsonObject);
-					if(!file.isEmpty()) {
-						file = file.substring(1, file.length() - 1);
-						file = file.replaceAll("\"", "");
+					if(!expName.isEmpty()) {
+						expName = expName.substring(1, expName.length() - 1);
+						expName = expName.replaceAll("\"", "");
 						JsonObjectBuilder name = Json.createObjectBuilder();
 						name = name.add("type", "Identifier");
-						name = name.add("name", file);
+						name = name.add("name", expName);
 						idFunction.add(name.build());
 						return;
 					}
@@ -317,9 +291,8 @@ public class Parser {
 			}
 		}
 	}
-	
-	private void buildNameFunction(JsonObject jsonObject) {
 
+	private void buildNameFunction(JsonObject jsonObject) {
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -333,17 +306,17 @@ public class Parser {
 					}
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
-					JsonObject obj1 = (JsonObject) entry.getValue();
-					buildNameFunction(obj1);	
+				JsonObject obj1 = (JsonObject) entry.getValue();
+				buildNameFunction(obj1);	
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getKey().toString().equals("name")) {
 					String name = entry.getValue().toString()+".";
-					file = file.concat(name);
+					expName = expName.concat(name);
 				}
 			}
 		}
 	}
-	
+
 	private void checkFunctionDeclaration(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
@@ -384,7 +357,7 @@ public class Parser {
 			}
 		}
 	}
-	
+
 	private void FunctionExpressionOnExpression(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
@@ -397,13 +370,13 @@ public class Parser {
 					for (JsonValue obj : array) {
 						if(obj instanceof JsonObject) {
 							object = (JsonObject) obj;
-							 FunctionExpressionOnExpression(object);
+							FunctionExpressionOnExpression(object);
 						}
 					}
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
 				JsonObject obj1 = (JsonObject) entry.getValue();
-				  FunctionExpressionOnExpression(obj1);	
+				FunctionExpressionOnExpression(obj1);	
 
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"FunctionExpression\"")) {
@@ -412,15 +385,8 @@ public class Parser {
 			}
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	private void FunctionOnVariable(JsonObject jsonObject) {
 
+	private void FunctionOnVariable(JsonObject jsonObject) {
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -430,23 +396,22 @@ public class Parser {
 					JsonArray array = (JsonArray) entry.getValue();
 					for (JsonValue obj : array) {
 						object = (JsonObject) obj;
-						  FunctionOnVariable(object);
+						FunctionOnVariable(object);
 					}
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
 				JsonObject obj1 = (JsonObject) entry.getValue();
-				  FunctionOnVariable(obj1);		
+				FunctionOnVariable(obj1);		
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"FunctionExpression\"")) {
-				    util = false;
+					util = false;
 				}
 			}
 		}
-	
+
 	}
 
 	private boolean checkFunctionName (JsonObject jsonObject) {
-
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -480,7 +445,6 @@ public class Parser {
 	}
 
 	private void isDOMwithLiteralOnArgument(JsonObject jsonObject) {
-
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -557,17 +521,17 @@ public class Parser {
 			} else if (entry.getValue() instanceof JsonObject) {
 				JsonObject obj1 = (JsonObject) entry.getValue();
 				searchVariable(obj1);	
-
 			} else if (entry.getValue() instanceof JsonString) {
-				if (entry.getValue().toString().equalsIgnoreCase("\"VariableDeclaration\"")) {
+				if (entry.getValue().toString().equals("\"VariableDeclaration\"")) {
 					getLocalVariable(jsonObject);
-				}
+				}else if (entry.getValue().toString().equals("\"FunctionExpression\"")) {
+					checkFunction(jsonObject);
+				}	
 			}
 		}
 	}
 
 	private void getLocalVariable (JsonObject jsonObject) {
-
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -593,7 +557,6 @@ public class Parser {
 		}
 	}
 
-
 	private void getLocalVariableName (JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
@@ -607,7 +570,6 @@ public class Parser {
 	}
 
 	private void compare(JsonObject jsonObject) {
-
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -635,7 +597,6 @@ public class Parser {
 	}
 
 	private void checkVariableNameOnEscope (JsonObject jsonObject)  {
-
 		String name;
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
@@ -655,22 +616,19 @@ public class Parser {
 	}
 
 	private void checkIfNative(String name) {
-
 		name = name.replaceAll("\"", "");
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("nashorn");
 		ScriptContext context = engine.getContext();
-
 		try {
 			engine.eval(name,context);
 		} catch (ScriptException e) {
+			e.getMessage();
 			util = false;
 		}
-
 	}
 
 	private boolean checkReturn(JsonObject jsonObject) {
-
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -701,10 +659,7 @@ public class Parser {
 	}
 
 	private void loadCsvFile() {
-
 		String nextLine[],name;
-		
-
 		try {
 			CSVReader reader = new CSVReader(new FileReader(csvFilePath),';');
 			while ((nextLine = reader.readNext()) != null) {
@@ -719,22 +674,17 @@ public class Parser {
 		}
 	}
 
-
-
 	private void buildListUtilityFunction() {
-
 		String funcName;
 		JsonObject object = (JsonObject) idFunction.get(0);
 		JsonArray array= (JsonArray) idFunction.get(1);
 		funcName = object.getJsonString("name").toString().replaceAll("\"", "");
 		Function function = new Function(funcName,file);
-
 		for (JsonValue obj : array) {
 			object = (JsonObject) obj;
 			function.addParam(object.getJsonString("name").toString().replaceAll("\"", ""));
 		}
 		functions.add(function);
-
 	}
 
 	private List<File> generateJSON(List<File> files) throws NoSuchMethodException, ScriptException, IOException {
@@ -784,13 +734,10 @@ public class Parser {
 		writer.writeAll(data);
 		writer.close();
 	}
-
 	String[] concat(String[] first, String[] second) {
 		List<String> both = new ArrayList<String>(first.length + second.length);
 		Collections.addAll(both, first);
 		Collections.addAll(both, second);
 		return both.toArray(new String[both.size()]);
 	}
-
-
 }
