@@ -693,10 +693,10 @@ public class Parser {
 			if (file.isFile() && file.getPath().endsWith(".js")) {
 				File arquivoJS = file;
 				File arquivoJSON = new File(file.getPath().substring(0, file.getPath().length() - 3) + ".json");
-				if (!arquivoJSON.exists()) {
+				//if (!arquivoJSON.exists()) {
 					Esprima esprima = new Esprima(arquivoJS, arquivoJSON);
 					esprima.parse();
-				}
+				//}
 				filesJSON.add(arquivoJSON);
 			}
 		}

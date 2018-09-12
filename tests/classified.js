@@ -176,6 +176,23 @@ Utils.groupSort = function(items, key) {
     return newItems;
 };
 
+
+(function(x, y) {
+	var f = function(){ //utilitária porque atende todos os critérios
+		console.log("teste");
+	}
+	f();
+	console.log(x + y);
+})(5, 5); 
+
+var foo = function(x, y) {
+	var bar = function(){ //não é utilitária porque esta aninhada a um funcao com nome
+		console.log("teste");
+	}
+	bar();
+	console.log(x + y);
+}; 
+
 // 13
 
 
@@ -210,3 +227,9 @@ var listener = (function() {
 
 
 */
+
+
+//colocar 10 novas funções utilitarias
+
+//colocar 10 novas funções não utilitárias
+
