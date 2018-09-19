@@ -231,5 +231,114 @@ var listener = (function() {
 
 //colocar 10 novas funções utilitarias
 
+(function() {
+	  function removeDuplicates(a) {
+	    return a.filter(function(e, pos) {
+	      return a.indexOf(e) == pos;
+	    });
+	  }
+	  
+	  function reverseString(s) {
+	    return s.split('').reverse().join('');
+	  }
+	  
+	  function arraysEqual(a, b) {
+	    if (a === b) { return true };
+	    if (a == null || b == null) { return false };
+	    if (a.length != b.length) { return false };
+
+	    for (var i = 0; i < a.length; ++i) {
+	      if (a[i] !== b[i]) { return false };
+	    }
+	    return true;
+	  }
+	  
+	  function dec2bin(dec) {
+	    return baseConvert(dec, 10, 2); // parseInt(dec, 10).toString(2)
+	  }
+	  
+	  function bin2dec(bin) {
+	    return baseConvert(bin, 2, 10); // parseInt(bin, 2)
+	  }
+	  
+	  function dec2hex(dec) {
+	    return baseConvert(dec, 10, 16); // parseInt(dec, 10).toString(16)
+	  }
+	  
+	  function hex2dec(hex) {
+	    return baseConvert(hex, 16, 10); // parseInt(hex, 16)
+	  }
+	  
+	  function baseConvert(num, b1, b2) {
+	    return parseInt(num, b1).toString(b2);
+	  }
+	  
+	  function ascii2bin(ascii) {
+	    if (ascii.length == 0) return;
+	    var bin = '';
+	    for (var i = 0; i < ascii.length; i++) {
+	      bin += ('00000000' + ascii.charCodeAt(i).toString(2)).slice(-8);
+	    }
+	    return bin;
+	  }
+	  
+	  function bin2ascii(bin) {
+	    var bin = bin.match(/[01]{8}/g);
+	    if (bin.length == 0) return;
+	    var ascii = '';
+	    for (var i = 0; i < bin.length; i++) {
+	      ascii += String.fromCharCode(parseInt(bin[i],2));
+	    }
+	    return ascii;
+	  }
+	  
+	  function ascii2hex(ascii){
+	    if (ascii.length == 0) return;
+	    var hex = '';
+	    for (var i = 0; i < ascii.length; i++) {
+	      hex += ('0000' + ascii.charCodeAt(i).toString(16)).slice(-4);
+	    }
+	    return hex;
+	  }
+	  
+	  function hex2ascii(hex) {
+	    hex = hex.match(/[0-9A-Fa-f]{4}/g);
+	    if (hex.length == 0) return;
+	    var ascii = '';
+	    for (var i = 0; i < hex.length; i++) {
+	      ascii += String.fromCharCode(parseInt(hex[i],16));
+	    }
+	    return ascii;
+	  }
+	  
+	  function ascii2base(dec) {
+	    return btoa(dec);
+	  }
+	  
+	  function base2ascii(num) {
+	    return atob(num);
+	  }
+
+	  function test(func, expect) {
+	    var input = Array.prototype.slice.call(arguments).slice(2);
+	    var output = func.apply(func, input);
+	    var funcName = /^function\s+([\w\$]+)\s*\(/.exec(func.toString())[1];
+	    var equal = expect === output || arraysEqual(expect, output);
+	    console[equal ? 'log' : 'error'](funcName, '\n    input: ', input, '\n    output:', output, '\n    expect:', expect);
+	    document.getElementById('output').innerHTML +=
+	      (equal ? '✔' : '✘') + ' ' + funcName + '\n    input:  ' + input + '\n    output: ' + output + '\n    expect: ' + expect + '\n';
+	  }
+
 //colocar 10 novas funções não utilitárias
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
 

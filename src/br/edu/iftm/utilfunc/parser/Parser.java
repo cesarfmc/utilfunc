@@ -135,7 +135,7 @@ public class Parser {
 				if(entry.getKey().equals("params")) {
 					if(idFunction.isEmpty()) {
 						util = false;
-						return;
+						idFunction.add(entry.getValue());
 					}else {
 						array = (JsonArray) entry.getValue();
 						idFunction.add(entry.getValue());
@@ -153,14 +153,20 @@ public class Parser {
 							object = (JsonObject) obj;
 							checkFunctionDeclaration(object); 
 							if(!util) {
-								return;
+								if(idFunction.isEmpty()) {
+									startOver(object);
+								}else if(idFunction.get(0) instanceof JsonObject) {
+									return;
+								}else {
+									startOver(object);
+								}
 							}else {
 								searchVariable(object);
 							}
 						}
 						for(JsonValue obj : array) {
 							object = (JsonObject) obj;
-							isDOMwithLiteralOnArgument(object);
+							//isDOMwithLiteralOnArgument(object);
 							if(!util) {
 								return;
 							}else {	
@@ -351,6 +357,9 @@ public class Parser {
 				}
 			} else if (entry.getValue() instanceof JsonString) {
 				if (entry.getValue().toString().equals("\"FunctionDeclaration\"")) {
+					util = false;
+					return;
+				}else if(entry.getValue().toString().equals("\"FunctionExpression\"")) {
 					util = false;
 					return;
 				}
@@ -615,6 +624,16 @@ public class Parser {
 		}
 	}
 
+	private void startOver(JsonObject jsonObject) {
+		idFunction.clear();
+		localVariables.clear();
+		util = true;
+		breakInPieces(jsonObject);
+	}
+	
+	
+	
+	
 	private void checkIfNative(String name) {
 		name = name.replaceAll("\"", "");
 		ScriptEngineManager manager = new ScriptEngineManager();
