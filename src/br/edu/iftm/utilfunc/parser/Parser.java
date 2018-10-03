@@ -143,6 +143,7 @@ public class Parser {
 					}
 				}else if(entry.getKey().equals("range")) {
 				}else if(entry.getKey().equals("body")) {
+					boolean status;
 					array = (JsonArray) entry.getValue();
 					JsonObject object = null;
 					if(array.isEmpty()) {
@@ -151,15 +152,10 @@ public class Parser {
 					}else {
 						for(JsonValue obj : array) {
 							object = (JsonObject) obj;
-							checkFunctionDeclaration(object); 
 							if(!util) {
-								if(idFunction.isEmpty()) {
-									startOver(object);
-								}else if(idFunction.get(0) instanceof JsonObject) {
-									return;
-								}else {
-									startOver(object);
-								}
+								status = util;
+								startOver(object);
+								util = status;
 							}else {
 								searchVariable(object);
 							}
@@ -192,7 +188,8 @@ public class Parser {
 					JsonObject idObject = (JsonObject) entry.getValue();	
 					if(idFunction.isEmpty()) {
 						if(checkFunctionName(idObject)) {
-							idFunction.add(entry.getValue());	
+							idFunction.add(entry.getValue());
+							getLocalVariableName(idObject);
 						}else {
 							util = false;
 							return;
@@ -226,7 +223,8 @@ public class Parser {
 					JsonObject idObject = (JsonObject) entry.getValue();	
 					if(idFunction.isEmpty()) {
 						if(checkFunctionName(idObject)) {
-							idFunction.add(idObject);	
+							idFunction.add(idObject);
+							getLocalVariableName(idObject);
 						}else {
 							util = false;
 						}	
@@ -356,10 +354,7 @@ public class Parser {
 					checkFunctionDeclaration(obj1);	
 				}
 			} else if (entry.getValue() instanceof JsonString) {
-				if (entry.getValue().toString().equals("\"FunctionDeclaration\"")) {
-					util = false;
-					return;
-				}else if(entry.getValue().toString().equals("\"FunctionExpression\"")) {
+				if(entry.getValue().toString().equals("\"FunctionExpression\"")) {
 					util = false;
 					return;
 				}
@@ -695,15 +690,18 @@ public class Parser {
 
 	private void buildListUtilityFunction() {
 		String funcName;
-		JsonObject object = (JsonObject) idFunction.get(0);
-		JsonArray array= (JsonArray) idFunction.get(1);
-		funcName = object.getJsonString("name").toString().replaceAll("\"", "");
-		Function function = new Function(funcName,file);
-		for (JsonValue obj : array) {
-			object = (JsonObject) obj;
-			function.addParam(object.getJsonString("name").toString().replaceAll("\"", ""));
+		try {
+			JsonObject object = (JsonObject) idFunction.get(0);
+			JsonArray array= (JsonArray) idFunction.get(1);
+			funcName = object.getJsonString("name").toString().replaceAll("\"", "");
+			Function function = new Function(funcName,file);
+			for (JsonValue obj : array) {
+				object = (JsonObject) obj;
+				function.addParam(object.getJsonString("name").toString().replaceAll("\"", ""));
+			}
+			functions.add(function);
+		}catch(Exception e) {	
 		}
-		functions.add(function);
 	}
 
 	private List<File> generateJSON(List<File> files) throws NoSuchMethodException, ScriptException, IOException {

@@ -185,6 +185,8 @@ Utils.groupSort = function(items, key) {
 	console.log(x + y);
 })(5, 5); 
 
+
+
 var foo = function(x, y) {
 	var bar = function(){ //não é utilitária porque esta aninhada a um funcao com nome
 		console.log("teste");
@@ -237,6 +239,14 @@ var listener = (function() {
 	      return a.indexOf(e) == pos;
 	    });
 	  }
+	  
+	  function reverseString(s) {
+		    return s.split('').reverse().join('');
+		  }
+	  
+	  // Problemas
+	  
+})
 	  
 	  function reverseString(s) {
 	    return s.split('').reverse().join('');
