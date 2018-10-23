@@ -35,7 +35,7 @@ public class Parser {
 	private List<Function> functions = new ArrayList<Function>();
 	private ArrayList<JsonValue> idFunction;
 	private ArrayList<String> localVariables;
-	private boolean util = true;
+	private boolean util = true,check,test;
 	private String file,expName;
 
 	public Parser(String dirPath, String csvFile) {
@@ -162,7 +162,7 @@ public class Parser {
 						}
 						for(JsonValue obj : array) {
 							object = (JsonObject) obj;
-							//isDOMwithLiteralOnArgument(object);
+							checkJquery(object);
 							if(!util) {
 								return;
 							}else {	
@@ -321,47 +321,6 @@ public class Parser {
 		}
 	}
 
-	private void checkFunctionDeclaration(JsonObject jsonObject) {
-
-		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
-		for (Entry<String, JsonValue> entry : myset) {
-			if (entry.getValue() instanceof JsonArray) {
-				if(entry.getKey().toString().equals("range")) {
-				}else {
-					JsonObject object = null;
-					JsonArray array = (JsonArray) entry.getValue();
-					for (JsonValue obj : array) {
-						if(obj instanceof JsonObject) {
-							object = (JsonObject) obj;
-							checkFunctionDeclaration(object);
-						}
-					}
-				}
-			} else if (entry.getValue() instanceof JsonObject) {
-
-				if(entry.getKey().toString().equals("id")) {
-					JsonObject idObject = (JsonObject) entry.getValue();	
-					if(idFunction.isEmpty()) {
-						if(checkFunctionName(idObject)) {
-							idFunction.add(idObject);	
-						}else {
-							util = false;
-							return;
-						}	
-					}
-				}else {
-					JsonObject obj1 = (JsonObject) entry.getValue();
-					checkFunctionDeclaration(obj1);	
-				}
-			} else if (entry.getValue() instanceof JsonString) {
-				if(entry.getValue().toString().equals("\"FunctionExpression\"")) {
-					util = false;
-					return;
-				}
-			}
-		}
-	}
-
 	private void FunctionExpressionOnExpression(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
@@ -448,7 +407,49 @@ public class Parser {
 		return true;
 	}
 
-	private void isDOMwithLiteralOnArgument(JsonObject jsonObject) {
+	private void checkJquery(JsonObject jsonObject) {
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			if (entry.getValue() instanceof JsonArray) {
+				if(entry.getKey().toString().equals("range")) {
+				}else if((entry.getKey().toString().equals("arguments")) && (check) && (test)) {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+						checkArguments(object);
+					}
+				}else if((entry.getKey().toString().equals("arguments")) && (check)) {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+						checkArguments(object);
+					}
+				}else {
+					JsonObject object = null;
+					JsonArray array = (JsonArray) entry.getValue();
+					for (JsonValue obj : array) {
+						object = (JsonObject) obj;
+						checkJquery(object);
+					}
+				}
+			} else if (entry.getValue() instanceof JsonObject) {
+				JsonObject obj1 = (JsonObject) entry.getValue();
+				checkJquery(obj1);	
+			} else if (entry.getValue() instanceof JsonString) {
+				if (entry.getValue().toString().equals("\"$\"")) {
+			      check = true;
+				}else if (entry.getValue().toString().equals("\"document\"")) {
+				      check = true;
+				}else  if (entry.getValue().toString().equals("\"getElementById\"")) {
+				      test = true;
+				}
+			}
+		}
+	}
+
+	private void checkArguments(JsonObject jsonObject) {
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
 		for (Entry<String, JsonValue> entry : myset) {
 			if (entry.getValue() instanceof JsonArray) {
@@ -458,36 +459,20 @@ public class Parser {
 					JsonArray array = (JsonArray) entry.getValue();
 					for (JsonValue obj : array) {
 						object = (JsonObject) obj;
-						isDOMwithLiteralOnArgument(object);
+						checkArguments(object);
 					}
 				}
 			} else if (entry.getValue() instanceof JsonObject) {
 				JsonObject obj1 = (JsonObject) entry.getValue();
-				isDOMwithLiteralOnArgument(obj1);	
+				checkArguments(obj1);	
 			} else if (entry.getValue() instanceof JsonString) {
-
-				if (entry.getValue().toString().equals("\"$\"")) {
-					idFunction.add(entry.getValue());
-				}else if (entry.getValue().toString().equals("\"document\"")) {
-					idFunction.add(entry.getValue());
-				}else if(entry.getValue().toString().equals("\"getElementById\"")) {
-					idFunction.add(entry.getValue());
-				}else if(entry.getValue().toString().equals("\"Literal\"")) {
-					if(idFunction.get(idFunction.size() - 1).toString().equals("\"getElementById\"")) {
-						if(idFunction.get(idFunction.size() - 2).toString().equals("\"document\"")) {
-							idFunction.remove(idFunction.size() - 1);
-							idFunction.remove(idFunction.size() - 1);
-							util = false;
-						}
-					}else {
-						if(idFunction.get(idFunction.size() - 1).toString().equals("\"$\"")) {
-							idFunction.remove(idFunction.size() - 1);
-							util = false;
-						}
-					}
+				if (entry.getValue().toString().equals("\"Literal\"")) {
+			          util = false;
 				}
 			}
 		}
+	   check = false;
+	   test = false;
 	}
 
 	private void getVariableNameOnParams (JsonArray myArray) {
