@@ -40,7 +40,7 @@ public class UtilFuncView extends ViewPart {
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
-	public static final String ID = "br.edu.iftm.plugintest.views.SampleView";
+	public static final String ID = "br.edu.iftm.plugintest.views.UtilFuncView";
 
 	private TableViewer viewer;
 	private Action action1;

@@ -5,15 +5,15 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            name="Sample Category"
-            id="br.edu.iftm.plugintest">
+            name="Util Function Category"
+            id="br.edu.iftm.utilfuncplugin">
       </category>
       <view
-            name="Sample View"
+            name="Util Function View"
             icon="icons/sample.gif"
-            category="br.edu.iftm.plugintest"
-            class="br.edu.iftm.plugintest.views.SampleView"
-            id="br.edu.iftm.plugintest.views.SampleView">
+            category="br.edu.iftm.utilfuncplugin"
+            class="br.edu.iftm.utilfuncplugin.views.UtilFuncView"
+            id="br.edu.iftm.utilfuncplugin.views.UtilFuncView">
       </view>
    </extension>
    <extension
