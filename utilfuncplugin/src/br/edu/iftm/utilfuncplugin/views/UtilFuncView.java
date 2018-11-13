@@ -2,18 +2,25 @@ package br.edu.iftm.utilfuncplugin.views;
 
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.part.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.SWT;
 
+import br.edu.iftm.utilfunc.parser.Parser;
 import br.edu.iftm.utilfuncplugin.entity.Function;
 
 
@@ -44,7 +51,6 @@ public class UtilFuncView extends ViewPart {
 
 	private TableViewer viewer;
 	private Action action1;
-	private Action action2;
 	private Action doubleClickAction;
 
 	/*
@@ -56,7 +62,7 @@ public class UtilFuncView extends ViewPart {
 	 * it and always show the same content 
 	 * (like Task List, for example).
 	 */
-	 
+
 	class ViewContentProvider implements IStructuredContentProvider {
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		}
@@ -92,30 +98,44 @@ public class UtilFuncView extends ViewPart {
 	 * to create the viewer and initialize it.
 	 */
 	public void createPartControl(Composite parent) {
-		
+
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
-        createColumns(parent, viewer);
-        final Table table = viewer.getTable();
-        table.setHeaderVisible(true);
-        table.setLinesVisible(true);
+		createColumns(parent, viewer);
+		final Table table = viewer.getTable();
+		table.setHeaderVisible(true);
+		table.setLinesVisible(true);
 
-        viewer.setContentProvider(new ArrayContentProvider());
-        // get the content for the viewer, setInput will call getElements in the
-        // contentProvider
-       // viewer.setInput(ModelProvider.INSTANCE.getPersons());
-        // make the selection available to other views
-        getSite().setSelectionProvider(viewer);
-        // set the sorter for the table
+		viewer.setContentProvider(new ArrayContentProvider());
+		// get the content for the viewer, setInput will call getElements in the
+		// contentProvider
+		// viewer.setInput(ModelProvider.INSTANCE.getPersons());
+		// make the selection available to other views
+		getSite().setSelectionProvider(viewer);
+		// set the sorter for the table
 
-        // define layout for the viewer
-        GridData gridData = new GridData();
-        gridData.verticalAlignment = GridData.FILL;
-        gridData.horizontalSpan = 2;
-        gridData.grabExcessHorizontalSpace = true;
-        gridData.grabExcessVerticalSpace = true;
-        gridData.horizontalAlignment = GridData.FILL;
-        viewer.getControl().setLayoutData(gridData);
-		/*viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+		// define layout for the viewer
+		GridData gridData = new GridData();
+		gridData.verticalAlignment = GridData.FILL;
+		gridData.horizontalSpan = 2;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.grabExcessVerticalSpace = true;
+		gridData.horizontalAlignment = GridData.FILL;
+		viewer.getControl().setLayoutData(gridData);
+
+
+
+
+
+
+
+
+		/*
+        Function [] rows = new Function [2];
+        rows[0] = new Function("Cesar", "Couto", "M", true);
+        rows[1] = new Function("Matheus", "Nascimento", "M", true);
+        viewer.setInput(rows);
+
+        viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(new ViewContentProvider());
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setSorter(new NameSorter());
@@ -123,10 +143,11 @@ public class UtilFuncView extends ViewPart {
 
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "br.edu.iftm.plugintest.viewer");
+		 */
 		makeActions();
 		hookContextMenu();
 		hookDoubleClickAction();
-		contributeToActionBars();*/
+		contributeToActionBars();
 	}
 
 	private void hookContextMenu() {
@@ -151,41 +172,58 @@ public class UtilFuncView extends ViewPart {
 	private void fillLocalPullDown(IMenuManager manager) {
 		manager.add(action1);
 		manager.add(new Separator());
-		manager.add(action2);
+
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
 		manager.add(action1);
-		manager.add(action2);
+
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
-	
+
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(action1);
-		manager.add(action2);
+
 	}
 
 	private void makeActions() {
 		action1 = new Action() {
 			public void run() {
-				showMessage("Action 1 executed");
+
+
+				Shell parent = new Shell(SWT.SHELL_TRIM);
+				List<br.edu.iftm.utilfunc.entity.Function> list = new ArrayList();
+				String pathFile, func, params;
+
+				DirectoryDialog dialog = new DirectoryDialog(parent);
+				String path = dialog.open();
+				if (path != null) {
+					Parser p = new Parser(path);
+					list = p.getFunctions();
+
+					Function [] rows = new Function [list.size()];
+
+					for (int i= 0; i < rows.length; i++) {
+						func = list.get(i).getName();
+						pathFile = list.get(i).getPath();
+						params = "";
+						for(String param : list.get(i).getParams()) {
+							params = params + param + ", ";
+						}
+						rows[i] = new Function(pathFile,func,params);
+
+					}
+					viewer.setInput(rows);
+				}
 			}
 		};
-		action1.setText("Action 1");
-		action1.setToolTipText("Action 1 tooltip");
+		action1.setText("UtilFunc");
+		action1.setToolTipText("Executar UtilFunc");
 		action1.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
-		action2 = new Action() {
-			public void run() {
-				showMessage("Action 2 executed");
-			}
-		};
-		action2.setText("Action 2");
-		action2.setToolTipText("Action 2 tooltip");
-		action2.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+
+
 		doubleClickAction = new Action() {
 			public void run() {
 				ISelection selection = viewer.getSelection();
@@ -204,9 +242,9 @@ public class UtilFuncView extends ViewPart {
 	}
 	private void showMessage(String message) {
 		MessageDialog.openInformation(
-			viewer.getControl().getShell(),
-			"Sample View",
-			message);
+				viewer.getControl().getShell(),
+				"Sample View",
+				message);
 	}
 
 	/**
@@ -215,71 +253,53 @@ public class UtilFuncView extends ViewPart {
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}
-	
-	 private void createColumns(final Composite parent, final TableViewer viewer) {
-	        String[] titles = { "First name", "Last name", "Gender", "Married" };
-	        int[] bounds = { 100, 100, 100, 100 };
 
-	        // first column is for the first name
-	        TableViewerColumn col = createTableViewerColumn(titles[0], bounds[0], 0);
-	        col.setLabelProvider(new ColumnLabelProvider() {
-	            @Override
-	            public String getText(Object element) {
-	                Function p = (Function) element;
-	                return p.getFirstName();
-	            }
-	        });
+	private void createColumns(final Composite parent, final TableViewer viewer) {
+		String[] titles = { "Caminho", "Função", "Parametros", "Linha" };
+		int[] bounds = { 100, 100, 100, 100 };
 
-	        // second column is for the last name
-	        col = createTableViewerColumn(titles[1], bounds[1], 1);
-	        col.setLabelProvider(new ColumnLabelProvider() {
-	            @Override
-	            public String getText(Object element) {
-	                Function p = (Function) element;
-	                return p.getLastName();
-	            }
-	        });
+		// first column is for the path
+		TableViewerColumn col = createTableViewerColumn(titles[0], bounds[0], 0);
+		col.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				Function p = (Function) element;
+				return p.getPath();
+			}
+		});
 
-	        // now the gender
-	        col = createTableViewerColumn(titles[2], bounds[2], 2);
-	        col.setLabelProvider(new ColumnLabelProvider() {
-	            @Override
-	            public String getText(Object element) {
-	                Function p = (Function) element;
-	                return p.getGender();
-	            }
-	        });
+		// second column is for the function name
+		col = createTableViewerColumn(titles[1], bounds[1], 1);
+		col.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				Function p = (Function) element;
+				return p.getFunc();
+			}
+		});
 
-	        // now the status married
-	        col = createTableViewerColumn(titles[3], bounds[3], 3);
-	        col.setLabelProvider(new ColumnLabelProvider() {
-	            @Override
-	            public String getText(Object element) {
-	                return null;
-	            }
+		// now the gender
+		col = createTableViewerColumn(titles[2], bounds[2], 2);
+		col.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				Function p = (Function) element;
+				return p.getParams();
+			}
+		});
 
-	            @Override
-	            public Image getImage(Object element) {
-	                if (((Function) element).isMarried()) {
-	                    return null;
-	                } else {
-	                    return null;
-	                }
-	            }
-	        });
+	}
 
-	    }
-	 
-	 private TableViewerColumn createTableViewerColumn(String title, int bound, final int colNumber) {
-	        final TableViewerColumn viewerColumn = new TableViewerColumn(viewer, SWT.NONE);
-	        final TableColumn column = viewerColumn.getColumn();
-	        column.setText(title);
-	        column.setWidth(bound);
-	        column.setResizable(true);
-	        column.setMoveable(true);
-	        return viewerColumn;
-	    }
+	private TableViewerColumn createTableViewerColumn(String title, int bound, final int colNumber) {
+		final TableViewerColumn viewerColumn = new TableViewerColumn(viewer, SWT.NONE);
+		final TableColumn column = viewerColumn.getColumn();
+		column.setText(title);
+		column.setWidth(bound);
+		column.setResizable(true);
+		column.setMoveable(true);
+		return viewerColumn;
+	}
 
-	
+
 
 }

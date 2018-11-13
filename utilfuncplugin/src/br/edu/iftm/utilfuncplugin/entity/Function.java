@@ -1,86 +1,40 @@
 package br.edu.iftm.utilfuncplugin.entity;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 
 public class Function {
-    private String firstName;
-    private String lastName;
-    private boolean married;
-    private String gender;
-    private Integer age;
-    private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(
-            this);
-
-    public Function() {
-    }
-
-    public Function(String firstName, String lastName, String gender,
-            boolean married) {
-        super();
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.gender = gender;
-        this.married = married;
-    }
-
-    public void addPropertyChangeListener(String propertyName,
-            PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(propertyName, listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.removePropertyChangeListener(listener);
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public boolean isMarried() {
-        return married;
-    }
-
-    public void setFirstName(String firstName) {
-        propertyChangeSupport.firePropertyChange("firstName", this.firstName,
-                this.firstName = firstName);
-    }
-
-    public void setGender(String gender) {
-        propertyChangeSupport.firePropertyChange("gender", this.gender,
-                this.gender = gender);
-    }
-
-    public void setLastName(String lastName) {
-        propertyChangeSupport.firePropertyChange("lastName", this.lastName,
-                this.lastName = lastName);
-    }
-
-    public void setMarried(boolean isMarried) {
-        propertyChangeSupport.firePropertyChange("married", this.married,
-                this.married = isMarried);
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        propertyChangeSupport.firePropertyChange("age", this.age,
-                this.age = age);
-    }
-
-    @Override
-    public String toString() {
-        return firstName + " " + lastName;
-    }
-
+    private String path;
+    private String func;
+    private String params;
+    
+    
+	public Function() {
+		super();
+		
+	}
+	public Function(String path, String func, String params) {
+		super();
+		this.path = path;
+		this.func = func;
+		this.params = params;
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getFunc() {
+		return func;
+	}
+	public void setFunc(String func) {
+		this.func = func;
+	}
+	public String getParams() {
+		return params;
+	}
+	public void setParams(String params) {
+		this.params = params;
+	}
+   
+    
 }

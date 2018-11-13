@@ -5,7 +5,7 @@ import br.edu.iftm.utilfunc.parser.Parser;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-    	Parser p = new Parser(args[0], args[1]);
+    	Parser p = new Parser(args[0]);
     	p.parse();
     	System.out.println("\n\nPrograma Finalizado ...");
     }

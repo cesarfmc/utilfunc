@@ -38,9 +38,9 @@ public class Parser {
 	private boolean util = true,check,test;
 	private String file,expName;
 
-	public Parser(String dirPath, String csvFile) {
+	public Parser(String dirPath) {
 		this.dirPath = dirPath;
-		this.csvFilePath = csvFile;
+		this.csvFilePath = "HostVariable.csv";
 		this.idFunction = new ArrayList<>();
 		this.localVariables = new ArrayList<>();
 	}
@@ -56,7 +56,7 @@ public class Parser {
 				generateUtilFunctions(filesJSON);
 			}
 		}
-		printCSV();
+		//printCSV();
 	}
 
 	private void generateUtilFunctions(List<File> filesJSON) throws FileNotFoundException  {
@@ -742,4 +742,10 @@ public class Parser {
 		Collections.addAll(both, second);
 		return both.toArray(new String[both.size()]);
 	}
+
+	public List<Function> getFunctions() {
+		return functions;
+	}
+	
+	
 }
