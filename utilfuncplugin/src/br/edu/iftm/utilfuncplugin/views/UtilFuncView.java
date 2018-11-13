@@ -189,33 +189,38 @@ public class UtilFuncView extends ViewPart {
 
 	private void makeActions() {
 		action1 = new Action() {
-			public void run() {
+			public void run()  {
 
-
-				Shell parent = new Shell(SWT.SHELL_TRIM);
-				List<br.edu.iftm.utilfunc.entity.Function> list = new ArrayList();
-				String pathFile, func, params;
-
-				DirectoryDialog dialog = new DirectoryDialog(parent);
-				String path = dialog.open();
-				if (path != null) {
-					Parser p = new Parser(path);
-					list = p.getFunctions();
-
-					Function [] rows = new Function [list.size()];
-
-					for (int i= 0; i < rows.length; i++) {
-						func = list.get(i).getName();
-						pathFile = list.get(i).getPath();
-						params = "";
-						for(String param : list.get(i).getParams()) {
-							params = params + param + ", ";
+				try {
+					Shell parent = new Shell(SWT.SHELL_TRIM);
+					List<br.edu.iftm.utilfunc.entity.Function> list = new ArrayList();
+					String pathFile, func, params;
+	
+					DirectoryDialog dialog = new DirectoryDialog(parent);
+					String path = dialog.open();
+					if (path != null) {
+						Parser p = new Parser(path);
+						p.parse();
+						list = p.getFunctions();
+	
+						Function [] rows = new Function [list.size()];
+	
+						for (int i= 0; i < rows.length; i++) {
+							func = list.get(i).getName();
+							pathFile = list.get(i).getPath();
+							params = "";
+							for(String param : list.get(i).getParams()) {
+								params = params + param + ", ";
+							}
+							rows[i] = new Function(pathFile,func,params);
+	
 						}
-						rows[i] = new Function(pathFile,func,params);
-
+						viewer.setInput(rows);
 					}
-					viewer.setInput(rows);
+				}catch(Exception e){
+						e.printStackTrace();
 				}
+				
 			}
 		};
 		action1.setText("UtilFunc");
