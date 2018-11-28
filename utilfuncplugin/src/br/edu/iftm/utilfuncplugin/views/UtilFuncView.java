@@ -6,10 +6,14 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.part.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -241,8 +245,18 @@ public class UtilFuncView extends ViewPart {
 				inicio = Integer.parseInt(linha[0]);
 				fim = Integer.parseInt(linha[1]);
 				
-		
-				
+				/*IFile file = (IFile) ResourceManager.toResource(new Path(obj.getPath()));
+				IWorkbenchPage page = <the page to open the editor in>;
+				HashMap map = new HashMap();
+				map.put(IMarker.LINE_NUMBER, new Integer(5));
+				map.put(IWorkbenchPage.EDITOR_ID_ATTR, 
+			      "org.eclipse.ui.DefaultTextEditor");
+				IMarker marker = file.createMarker(IMarker.TEXT);
+				marker.setAttributes(map);
+				//page.openEditor(marker); //2.1 API
+				IDE.openEditor(marker); //3.0 API
+				marker.delete();
+				*/
 				
 				//https://wiki.eclipse.org/FAQ_How_do_I_open_an_editor_on_a_file_in_the_workspace%3F
 				//https://www.eclipsezone.com/eclipse/forums/t102821.html

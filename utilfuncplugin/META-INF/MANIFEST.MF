@@ -5,7 +5,8 @@ Bundle-SymbolicName: utilfuncplugin;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: br.edu.iftm.utilfuncplugin.Activator
 Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources;bundle-version="3.9.1"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: lib/javax.json-1.0.4.jar,
