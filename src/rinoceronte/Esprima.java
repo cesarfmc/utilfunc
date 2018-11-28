@@ -48,10 +48,11 @@ public class Esprima {
         context.setAttribute("__dirname", "/home/foo", ENGINE_SCOPE);
         context.setAttribute("__filename", "client.js", ENGINE_SCOPE);
         
+        
         Invocable inv = (Invocable) engine;
         Object esprima = engine.get("esprima");
-        
-        Object tree = inv.invokeMethod(esprima, "parse", readFile(arquivoJS.getPath()));
+        engine.eval("args = {loc: true, range: true}");
+        Object tree = inv.invokeMethod(esprima, "parse", readFile(arquivoJS.getPath()), engine.eval("args"));
         
         Object JSON = engine.get("JSON");
 

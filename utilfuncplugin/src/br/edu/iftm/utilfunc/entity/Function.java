@@ -7,11 +7,13 @@ public class Function {
 	
 	private String name;
 	private String path;
+	private String line;
 	private List<String> params = new ArrayList<String>();
 	
-	public Function(String name, String path){
+	public Function(String name, String path, String line){
 		this.name = name;
 		this.path = path;
+		this.line = line;
 	}
 	
 	public String getName(){
@@ -29,4 +31,13 @@ public class Function {
 	public String getPath(){
 		return path;
 	}
+
+	public String getLine() {
+		return line;
+	}
+
+	public void setLine(String line) {
+		this.line = line;
+	}
+	
 }

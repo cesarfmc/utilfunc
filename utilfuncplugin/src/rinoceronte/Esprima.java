@@ -68,7 +68,7 @@ public class Esprima {
         
         Invocable inv = (Invocable) engine;
         Object esprima = engine.get("esprima");
-        engine.eval("args = {loc: true, range: true, tokens: true, comment: true}");
+        engine.eval("args = {loc: true, range: true}");
         Object tree = inv.invokeMethod(esprima, "parse", readFile(arquivoJS.getPath()), engine.eval("args"));
         
         Object JSON = engine.get("JSON");

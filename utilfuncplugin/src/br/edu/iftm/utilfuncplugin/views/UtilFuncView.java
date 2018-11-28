@@ -194,7 +194,7 @@ public class UtilFuncView extends ViewPart {
 				try {
 					Shell parent = new Shell(SWT.SHELL_TRIM);
 					List<br.edu.iftm.utilfunc.entity.Function> list = new ArrayList();
-					String pathFile, func, params;
+					String pathFile, func, params, line;
 	
 					DirectoryDialog dialog = new DirectoryDialog(parent);
 					String path = dialog.open();
@@ -208,11 +208,12 @@ public class UtilFuncView extends ViewPart {
 						for (int i= 0; i < rows.length; i++) {
 							func = list.get(i).getName();
 							pathFile = list.get(i).getPath();
+							line = list.get(i).getLine();
 							params = "";
 							for(String param : list.get(i).getParams()) {
 								params = params + param + ", ";
 							}
-							rows[i] = new Function(pathFile,func,params);
+							rows[i] = new Function(pathFile,func,params,line);
 	
 						}
 						viewer.setInput(rows);
@@ -226,14 +227,28 @@ public class UtilFuncView extends ViewPart {
 		action1.setText("UtilFunc");
 		action1.setToolTipText("Executar UtilFunc");
 		action1.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+				getImageDescriptor(ISharedImages.IMG_OBJ_ELEMENT));
 
 
 		doubleClickAction = new Action() {
 			public void run() {
 				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection)selection).getFirstElement();
-				showMessage("Double-click detected on "+obj.toString());
+				Function obj = (Function)((IStructuredSelection)selection).getFirstElement();
+				
+				showMessage("Caminho: "+obj.getPath());
+				String[] linha; int inicio, fim;
+				linha = obj.getLine().split(" - ");
+				inicio = Integer.parseInt(linha[0]);
+				fim = Integer.parseInt(linha[1]);
+				
+		
+				
+				
+				//https://wiki.eclipse.org/FAQ_How_do_I_open_an_editor_on_a_file_in_the_workspace%3F
+				//https://www.eclipsezone.com/eclipse/forums/t102821.html
+				
+				
+				
 			}
 		};
 	}
@@ -260,7 +275,7 @@ public class UtilFuncView extends ViewPart {
 	}
 
 	private void createColumns(final Composite parent, final TableViewer viewer) {
-		String[] titles = { "Caminho", "Função", "Parametros", "Linha" };
+		String[] titles = { "Path", "Function", "Parameters", "Line" };
 		int[] bounds = { 100, 100, 100, 100 };
 
 		// first column is for the path
@@ -283,13 +298,23 @@ public class UtilFuncView extends ViewPart {
 			}
 		});
 
-		// now the gender
+		//third column is for the parameters
 		col = createTableViewerColumn(titles[2], bounds[2], 2);
 		col.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
 				Function p = (Function) element;
 				return p.getParams();
+			}
+		});
+		
+		//Now for the line
+		col = createTableViewerColumn(titles[3], bounds[3], 3);
+		col.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				Function p = (Function) element;
+				return p.getLine();
 			}
 		});
 

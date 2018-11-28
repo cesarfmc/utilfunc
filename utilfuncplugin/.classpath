@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="/utilfunc/bin"/>
 	<classpathentry kind="lib" path="lib/javax.json-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/opencsv-2.2.jar"/>
+	<classpathentry kind="lib" path="/media/matheus/datadisk/Documentos/org.eclipse.egit_5.2.0.201811252039.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

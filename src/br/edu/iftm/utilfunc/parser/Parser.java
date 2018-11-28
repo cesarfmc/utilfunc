@@ -36,7 +36,7 @@ public class Parser {
 	private ArrayList<JsonValue> idFunction;
 	private ArrayList<String> localVariables;
 	private boolean util = true,check,test;
-	private String file,expName;
+	private String file,expName,line;
 
 	public Parser(String dirPath) {
 		this.dirPath = dirPath;
@@ -195,7 +195,10 @@ public class Parser {
 							return;
 						}
 					}
-				}else {
+				}else if(entry.getKey().equals("loc")) {
+					JsonObject object = (JsonObject) entry.getValue();
+					getLocation(object);
+				}else{
 					JsonObject object = (JsonObject) entry.getValue();
 					checkFunction(object);	
 				}
@@ -204,6 +207,35 @@ public class Parser {
 		}
 	}
 
+	private void getLocation(JsonObject jsonObject) {
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			 if (entry.getValue() instanceof JsonObject) {
+				 JsonObject obj1 = (JsonObject) entry.getValue();
+				 if((entry.getKey().equals("start"))) {
+					 startLine(obj1);
+				 }else {
+				  getLocation(obj1);	
+				 }
+			} else if (entry.getValue() instanceof JsonString) {
+				if (entry.getKey().toString().equals("line")) {
+					line = line +" - "+entry.getValue().toString();
+				}
+			}
+		}
+	}
+	
+	private void startLine(JsonObject jsonObject) {
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+		      if (entry.getValue() instanceof JsonString) {
+				if (entry.getKey().toString().equals("line")) {
+					line = entry.getValue().toString();
+				}
+			}
+		}
+	}
+	
 	private void checkFunctionOnVariable(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
@@ -679,13 +711,14 @@ public class Parser {
 			JsonObject object = (JsonObject) idFunction.get(0);
 			JsonArray array= (JsonArray) idFunction.get(1);
 			funcName = object.getJsonString("name").toString().replaceAll("\"", "");
-			Function function = new Function(funcName,file);
+			Function function = new Function(funcName,file,line);
 			for (JsonValue obj : array) {
 				object = (JsonObject) obj;
 				function.addParam(object.getJsonString("name").toString().replaceAll("\"", ""));
 			}
 			functions.add(function);
 		}catch(Exception e) {	
+	
 		}
 	}
 

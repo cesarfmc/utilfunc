@@ -5,16 +5,15 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
-
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
@@ -24,11 +23,6 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.osgi.framework.Bundle;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -43,14 +37,11 @@ public class Parser {
 	private ArrayList<JsonValue> idFunction;
 	private ArrayList<String> localVariables;
 	private boolean util = true,check,test;
-	private String file,expName;
+	private String file,expName,line;
 
-	public Parser(String dirPath) throws Exception{
+	public Parser(String dirPath) {
 		this.dirPath = dirPath;
-		Bundle bundle = Platform.getBundle("utilfuncplugin");
-        URL eclipseURL = FileLocator.find(bundle, new Path("HostVariable.csv"), null);
-        URL fileURL = FileLocator.toFileURL(eclipseURL);
-        this.csvFilePath = fileURL.getPath();
+		this.csvFilePath = "/media/matheus/datadisk/Documentos/utilfunc/HostVariable.csv";
 		this.idFunction = new ArrayList<>();
 		this.localVariables = new ArrayList<>();
 	}
@@ -205,7 +196,10 @@ public class Parser {
 							return;
 						}
 					}
-				}else {
+				}else if(entry.getKey().equals("loc")) {
+					JsonObject object = (JsonObject) entry.getValue();
+					getLocation(object);
+				}else{
 					JsonObject object = (JsonObject) entry.getValue();
 					checkFunction(object);	
 				}
@@ -214,6 +208,35 @@ public class Parser {
 		}
 	}
 
+	private void getLocation(JsonObject jsonObject) {
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+			 if (entry.getValue() instanceof JsonObject) {
+				 JsonObject obj1 = (JsonObject) entry.getValue();
+				 if((entry.getKey().equals("start"))) {
+					 startLine(obj1);
+				 }else {
+				  getLocation(obj1);	
+				 }
+			} else if (entry.getValue() instanceof JsonNumber) {
+				if (entry.getKey().equals("line")) {
+					line = line +" - "+entry.getValue().toString();
+				}
+			}
+		}
+	}
+	
+	private void startLine(JsonObject jsonObject) {
+		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
+		for (Entry<String, JsonValue> entry : myset) {
+		      if (entry.getValue() instanceof JsonNumber) {
+				if (entry.getKey().equals("line")) {
+					line = entry.getValue().toString();
+				}
+			}
+		}
+	}
+	
 	private void checkFunctionOnVariable(JsonObject jsonObject) {
 
 		Set<Entry<String, JsonValue>> myset = jsonObject.entrySet();
@@ -689,13 +712,14 @@ public class Parser {
 			JsonObject object = (JsonObject) idFunction.get(0);
 			JsonArray array= (JsonArray) idFunction.get(1);
 			funcName = object.getJsonString("name").toString().replaceAll("\"", "");
-			Function function = new Function(funcName,file);
+			Function function = new Function(funcName,file,line);
 			for (JsonValue obj : array) {
 				object = (JsonObject) obj;
 				function.addParam(object.getJsonString("name").toString().replaceAll("\"", ""));
 			}
 			functions.add(function);
 		}catch(Exception e) {	
+	
 		}
 	}
 
