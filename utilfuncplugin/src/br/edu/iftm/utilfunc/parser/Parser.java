@@ -5,12 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -23,6 +25,11 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.osgi.framework.Bundle;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -39,9 +46,12 @@ public class Parser {
 	private boolean util = true,check,test;
 	private String file,expName,line;
 
-	public Parser(String dirPath) {
+	public Parser(String dirPath) throws Exception{
 		this.dirPath = dirPath;
-		this.csvFilePath = "/media/matheus/datadisk/Documentos/utilfunc/HostVariable.csv";
+		Bundle bundle = Platform.getBundle("utilfuncplugin");
+		URL eclipseURL = FileLocator.find(bundle, new Path("HostVariable.csv"), null);
+        URL fileURL = FileLocator.toFileURL(eclipseURL);
+		this.csvFilePath = fileURL.getPath();
 		this.idFunction = new ArrayList<>();
 		this.localVariables = new ArrayList<>();
 	}
