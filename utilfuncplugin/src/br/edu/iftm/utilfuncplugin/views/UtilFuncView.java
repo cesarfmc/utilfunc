@@ -6,19 +6,23 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.part.*;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -235,28 +239,38 @@ public class UtilFuncView extends ViewPart {
 
 
 		doubleClickAction = new Action() {
+			 
+
 			public void run() {
+				
 				ISelection selection = viewer.getSelection();
 				Function obj = (Function)((IStructuredSelection)selection).getFirstElement();
 				
-				showMessage("Caminho: "+obj.getPath());
-				String[] linha; int inicio, fim;
-				linha = obj.getLine().split(" - ");
-				inicio = Integer.parseInt(linha[0]);
-				fim = Integer.parseInt(linha[1]);
+				//showMessage("Caminho: "+obj.getPath());
+			    int inicio;
 				
-				/*IFile file = (IFile) ResourceManager.toResource(new Path(obj.getPath()));
-				IWorkbenchPage page = <the page to open the editor in>;
-				HashMap map = new HashMap();
-				map.put(IMarker.LINE_NUMBER, new Integer(5));
-				map.put(IWorkbenchPage.EDITOR_ID_ATTR, 
-			      "org.eclipse.ui.DefaultTextEditor");
-				IMarker marker = file.createMarker(IMarker.TEXT);
-				marker.setAttributes(map);
-				//page.openEditor(marker); //2.1 API
-				IDE.openEditor(marker); //3.0 API
-				marker.delete();
-				*/
+				inicio = Integer.parseInt(obj.getLine());	
+				
+		
+			
+				IWorkspace workspace= ResourcesPlugin.getWorkspace();    
+				IPath location= new Path(obj.getPath());
+				IFile ifile= workspace.getRoot().getFileForLocation(location);
+				
+				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+				IWorkbenchPage page = window.getActivePage();
+				try {
+					page.openEditor((IEditorInput) ifile, "org.eclipse.ui.DefaultTextEdtior");
+					//IDE.openEditor(page, location, true);
+					
+					
+				} catch (PartInitException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
+				
 				
 				//https://wiki.eclipse.org/FAQ_How_do_I_open_an_editor_on_a_file_in_the_workspace%3F
 				//https://www.eclipsezone.com/eclipse/forums/t102821.html
@@ -290,7 +304,7 @@ public class UtilFuncView extends ViewPart {
 
 	private void createColumns(final Composite parent, final TableViewer viewer) {
 		String[] titles = { "Path", "Function", "Parameters", "Line" };
-		int[] bounds = { 100, 100, 100, 100 };
+		int[] bounds = { 500, 150, 150, 150 };
 
 		// first column is for the path
 		TableViewerColumn col = createTableViewerColumn(titles[0], bounds[0], 0);

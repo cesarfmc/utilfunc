@@ -225,14 +225,8 @@ public class Parser {
 				 JsonObject obj1 = (JsonObject) entry.getValue();
 				 if((entry.getKey().equals("start"))) {
 					 startLine(obj1);
-				 }else {
-				  getLocation(obj1);	
 				 }
-			} else if (entry.getValue() instanceof JsonNumber) {
-				if (entry.getKey().equals("line")) {
-					line = line +" - "+entry.getValue().toString();
-				}
-			}
+			} 
 		}
 	}
 	
