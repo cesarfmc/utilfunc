@@ -2,6 +2,8 @@ package br.edu.iftm.utilfuncplugin.views;
 
 
 import org.eclipse.swt.widgets.Composite;
+
+
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -25,7 +27,6 @@ import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -280,54 +281,7 @@ public class UtilFuncView extends ViewPart {
 		            }
 				} catch (Exception e) {
 					e.printStackTrace();
-				}
-				/*try {
-					IWorkspace ws = ResourcesPlugin.getWorkspace();
-					IProject project = ws.getRoot().getProject("External Files");
-					if (!project.exists())
-					    project.create(null);
-					if (!project.isOpen())
-					    project.open(null);
-					IPath location = new Path(obj.getPath());
-					IFile ifile = project.getFile(location.lastSegment());
-					ifile.createLink(location, IResource.NONE, null);
-					IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-					IWorkbenchPage page = window.getActivePage();
-					
-					if (page != null)
-					    page.openEditor(new FileEditorInput(ifile), "org.eclipse.ui.DefaultTextEditor");
-						page.openEditor(page, location, true);
-						
-					
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
-				
-				/*IWorkspace workspace= ResourcesPlugin.getWorkspace();    
-				IPath location= new Path(obj.getPath());
-				IFile ifile= workspace.getRoot().getFileForLocation(location);
-				
-				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-				IWorkbenchPage page = window.getActivePage();
-				try {
-					page.openEditor((IEditorInput) ifile, "org.eclipse.ui.DefaultTextEdtior");
-					//IDE.openEditor(page, location, true);
-					
-					
-				} catch (PartInitException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
-				
-				
-				
-				
-				//https://wiki.eclipse.org/FAQ_How_do_I_open_an_editor_on_a_file_in_the_workspace%3F
-				//https://www.eclipsezone.com/eclipse/forums/t102821.html
-				
-				
-				
+				}				
 			}
 		};
 	}
