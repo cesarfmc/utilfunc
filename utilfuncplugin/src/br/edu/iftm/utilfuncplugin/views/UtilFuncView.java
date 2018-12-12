@@ -6,16 +6,26 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.part.*;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 
+import java.awt.FileDialog;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -31,6 +41,7 @@ import org.eclipse.swt.SWT;
 import br.edu.iftm.utilfunc.parser.Parser;
 import br.edu.iftm.utilfuncplugin.entity.Function;
 
+import org.eclipse.ui.ide.IDE;
 
 /**
  * This sample class demonstrates how to plug-in a new
@@ -251,9 +262,49 @@ public class UtilFuncView extends ViewPart {
 				
 				inicio = Integer.parseInt(obj.getLine());	
 				
-		
-			
-				IWorkspace workspace= ResourcesPlugin.getWorkspace();    
+				try {
+					IFileStore fileStore = EFS.getLocalFileSystem().getStore(new Path(obj.getPath()));
+					IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+					IWorkbenchPage page = window.getActivePage();
+					IEditorPart editor = IDE.openEditorOnFileStore(page, fileStore);
+					if (editor instanceof ITextEditor) {
+		                ITextEditor textEditor = (ITextEditor) editor;
+
+		                if (inicio > 0) {
+		                    IDocumentProvider provider = textEditor.getDocumentProvider();
+		                    IDocument document = provider.getDocument(textEditor.getEditorInput());
+
+		                    int start = document.getLineOffset(inicio-1); //zero-indexed
+		                    textEditor.selectAndReveal(start, 0);
+		                }
+		            }
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				/*try {
+					IWorkspace ws = ResourcesPlugin.getWorkspace();
+					IProject project = ws.getRoot().getProject("External Files");
+					if (!project.exists())
+					    project.create(null);
+					if (!project.isOpen())
+					    project.open(null);
+					IPath location = new Path(obj.getPath());
+					IFile ifile = project.getFile(location.lastSegment());
+					ifile.createLink(location, IResource.NONE, null);
+					IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+					IWorkbenchPage page = window.getActivePage();
+					
+					if (page != null)
+					    page.openEditor(new FileEditorInput(ifile), "org.eclipse.ui.DefaultTextEditor");
+						page.openEditor(page, location, true);
+						
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+				
+				/*IWorkspace workspace= ResourcesPlugin.getWorkspace();    
 				IPath location= new Path(obj.getPath());
 				IFile ifile= workspace.getRoot().getFileForLocation(location);
 				
@@ -267,7 +318,7 @@ public class UtilFuncView extends ViewPart {
 				} catch (PartInitException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 				
 				
 				
