@@ -2,6 +2,7 @@ package br.edu.iftm.utilfuncplugin.views;
 
 
 import org.eclipse.swt.widgets.Composite;
+
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -16,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -253,22 +255,31 @@ public class UtilFuncView extends ViewPart {
 				
 		
 			
-				IWorkspace workspace= ResourcesPlugin.getWorkspace();    
-				IPath location= new Path(obj.getPath());
-				IFile ifile= workspace.getRoot().getFileForLocation(location);
-				
-				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-				IWorkbenchPage page = window.getActivePage();
-				try {
-					page.openEditor((IEditorInput) ifile, "org.eclipse.ui.DefaultTextEdtior");
-					//IDE.openEditor(page, location, true);
-					
-					
+				   IWorkspace ws = ResourcesPlugin.getWorkspace();
+				   IWorkbench wb = PlatformUI.getWorkbench();
+				  
+				   IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+				   IWorkbenchPage page = win.getActivePage();
+				   //IFile file = obj.getPath();
+				   
+				   
+				   
+				   
+				   try {
+					  // Precisa faser uso do FileEditorInput no seu construtor é passado um IFile e ele é passado 
+					   // por parâmetro para page.openEditor(, "org.eclipse.ui.DefaultTextEdtior");
+					   
+					   
+					//page.openEditor((EditorInput) file, "org.eclipse.ui.DefaultTextEdtior");
 				} catch (PartInitException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
+				
+				
+			
+
 				
 				
 				
