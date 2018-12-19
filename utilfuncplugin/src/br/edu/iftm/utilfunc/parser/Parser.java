@@ -152,6 +152,13 @@ public class Parser {
 						idFunction.add(entry.getValue());
 						getVariableNameOnParams(array);
 					}
+					JsonArray params = (JsonArray) entry.getValue();
+					for (JsonValue obj : params) {
+						if(obj instanceof JsonObject) {
+							JsonObject	object = (JsonObject) obj;
+							getLocation(object);
+						}
+					}
 				}else if(entry.getKey().equals("range")) {
 				}else if(entry.getKey().equals("body")) {
 					boolean status;
@@ -206,9 +213,6 @@ public class Parser {
 							return;
 						}
 					}
-				}else if(entry.getKey().equals("loc")) {
-					JsonObject object = (JsonObject) entry.getValue();
-					getLocation(object);
 				}else{
 					JsonObject object = (JsonObject) entry.getValue();
 					checkFunction(object);	
@@ -225,6 +229,8 @@ public class Parser {
 				 JsonObject obj1 = (JsonObject) entry.getValue();
 				 if((entry.getKey().equals("start"))) {
 					 startLine(obj1);
+				 }else {
+					 getLocation(obj1);
 				 }
 			} 
 		}
