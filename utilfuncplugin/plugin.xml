@@ -3,6 +3,41 @@
 <plugin>
 
    <extension
+point="org.eclipse.ui.menus">
+<menuContribution
+
+locationURI=" popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?aft er=additions ">
+<command
+commandId="utilfuncplugin.commands.sampleCommand"
+id="utilfuncplugin.menus.sampleCommand"
+label="Executar Utilfunc"
+icon="icons/tool.png"
+mnemonic="M1+P"
+tooltip="Executa o verificador de funções utilitárias">
+</command>
+</menuContribution>
+</extension>
+
+
+ 
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="br.edu.iftm.utilfuncplugin.views.RightClickUtilFunc"
+            commandId="utilfuncplugin.commands.sampleCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="utilfuncplugin.commands.sampleCommand"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+6">
+      </key>
+   </extension>
+
+   <extension
          point="org.eclipse.ui.views">
       <category
             name="Util Function Category"
@@ -10,7 +45,7 @@
       </category>
       <view
             name="Util Function View"
-            icon="icons/sample.gif"
+            icon="icons/tool.png"
             category="br.edu.iftm.utilfuncplugin"
             class="br.edu.iftm.utilfuncplugin.views.UtilFuncView"
             id="br.edu.iftm.utilfuncplugin.views.UtilFuncView">
@@ -34,5 +69,5 @@
             file="contexts.xml">
       </contexts>
    </extension>
-
+   
 </plugin>

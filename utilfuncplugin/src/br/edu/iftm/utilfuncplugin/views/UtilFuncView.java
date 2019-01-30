@@ -3,7 +3,6 @@ package br.edu.iftm.utilfuncplugin.views;
 
 import org.eclipse.swt.widgets.Composite;
 
-
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -14,35 +13,23 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
-
-import java.awt.FileDialog;
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
-import org.eclipse.core.filesystem.provider.FileStore;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.SWT;
-
 import br.edu.iftm.utilfunc.parser.Parser;
 import br.edu.iftm.utilfuncplugin.entity.Function;
-
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * This sample class demonstrates how to plug-in a new
@@ -72,6 +59,7 @@ public class UtilFuncView extends ViewPart {
 	private TableViewer viewer;
 	private Action action1;
 	private Action doubleClickAction;
+	private Composite compoParent;
 
 	/*
 	 * The content provider class is responsible for
@@ -106,12 +94,10 @@ public class UtilFuncView extends ViewPart {
 	}
 	class NameSorter extends ViewerSorter {
 	}
-
+	
 	/**
 	 * The constructor.
 	 */
-	public UtilFuncView() {
-	}
 
 	/**
 	 * This is a callback that will allow us
@@ -142,32 +128,11 @@ public class UtilFuncView extends ViewPart {
 		gridData.horizontalAlignment = GridData.FILL;
 		viewer.getControl().setLayoutData(gridData);
 
-
-
-
-
-
-
-
-		/*
-        Function [] rows = new Function [2];
-        rows[0] = new Function("Cesar", "Couto", "M", true);
-        rows[1] = new Function("Matheus", "Nascimento", "M", true);
-        viewer.setInput(rows);
-
-        viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		viewer.setContentProvider(new ViewContentProvider());
-		viewer.setLabelProvider(new ViewLabelProvider());
-		viewer.setSorter(new NameSorter());
-		viewer.setInput(getViewSite());
-
-		// Create the help context id for the viewer's control
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "br.edu.iftm.plugintest.viewer");
-		 */
 		makeActions();
 		hookContextMenu();
 		hookDoubleClickAction();
 		contributeToActionBars();
+		
 	}
 
 	private void hookContextMenu() {
@@ -213,30 +178,10 @@ public class UtilFuncView extends ViewPart {
 
 				try {
 					Shell parent = new Shell(SWT.SHELL_TRIM);
-					List<br.edu.iftm.utilfunc.entity.Function> list = new ArrayList();
-					String pathFile, func, params, line;
-	
 					DirectoryDialog dialog = new DirectoryDialog(parent);
 					String path = dialog.open();
 					if (path != null) {
-						Parser p = new Parser(path);
-						p.parse();
-						list = p.getFunctions();
-	
-						Function [] rows = new Function [list.size()];
-	
-						for (int i= 0; i < rows.length; i++) {
-							func = list.get(i).getName();
-							pathFile = list.get(i).getPath();
-							line = list.get(i).getLine();
-							params = "";
-							for(String param : list.get(i).getParams()) {
-								params = params + param + ", ";
-							}
-							rows[i] = new Function(pathFile,func,params,line);
-	
-						}
-						viewer.setInput(rows);
+						parserView(path);
 					}
 				}catch(Exception e){
 						e.printStackTrace();
@@ -362,7 +307,39 @@ public class UtilFuncView extends ViewPart {
 		column.setMoveable(true);
 		return viewerColumn;
 	}
+	
+	public void parserView(String path) {
 
+		String pathFile, func, params, line;
+		List<br.edu.iftm.utilfunc.entity.Function> list = new ArrayList();
+		Parser p;
+		try {
+			p = new Parser(path);
+			p.parse();
+			list = p.getFunctions();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
 
+		Function [] rows = new Function [list.size()];
 
+		for (int i= 0; i < rows.length; i++) {
+			func = list.get(i).getName();
+			pathFile = list.get(i).getPath();
+			line = list.get(i).getLine();
+			params = "";
+			for(String param : list.get(i).getParams()) {
+				params = params + param + ", ";
+			}
+			rows[i] = new Function(pathFile,func,params,line);
+
+		}
+		 //Shell shell = new Shell();
+		 //Composite unten = new Composite(shell,SWT.NO_BACKGROUND);
+		 //createPartControl(unten);
+	   	viewer.setInput(rows);
+		
+	}
 }
