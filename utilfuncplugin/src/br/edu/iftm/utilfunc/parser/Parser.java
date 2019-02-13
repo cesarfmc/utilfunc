@@ -25,6 +25,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.swing.JOptionPane;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -739,15 +740,17 @@ public class Parser {
 			if (file.isFile() && file.getPath().endsWith(".js")) {
 				File arquivoJS = file;
 				File arquivoJSON = new File(file.getPath().substring(0, file.getPath().length() - 3) + ".json");
-				//if (!arquivoJSON.exists()) {
-					Esprima esprima = new Esprima(arquivoJS, arquivoJSON);
-					esprima.parse();
-				//}
-				filesJSON.add(arquivoJSON);
-			}
-		}
-		return filesJSON;
+	               try {
+	            	   Esprima esprima = new Esprima(arquivoJS, arquivoJSON);
+					   esprima.parse();
+					   filesJSON.add(arquivoJSON);
+	               }catch(Exception e){
+	            	   JOptionPane.showMessageDialog(null, "Syntax illegal on file: "+arquivoJS, "Warning", JOptionPane.WARNING_MESSAGE);
+	               }		
+		}	
 	}
+		return filesJSON;
+}
 
 	private List<File> listf(String directoryName) {
 		File directory = new File(directoryName);
@@ -793,3 +796,4 @@ public class Parser {
 	
 	
 }
+
